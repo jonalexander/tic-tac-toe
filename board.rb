@@ -43,7 +43,8 @@ class Board
 
   def check_for_win
     @@winning_scenarios.each do |combo_array|
-      if @board[combo_array[0]] != blank && [@board[combo_array[0]], @board[combo_array[1]], @board[combo_array[2]]].uniq.length == 1
+      winning_combo = [@board[combo_array[0]], @board[combo_array[1]], @board[combo_array[2]]]
+      if !winning_combo.include?(blank) && winning_combo.uniq.length == 1
         return true
       else
         return false

@@ -25,8 +25,13 @@
 11. check for ties XX
 
 
+issues
 
-
+1. square 1 wins
+2. computer isnt winning with 3 in a row
+3. wrong numbers when selecting a square
+4. create play again feature
+5. end of each game return player's updated record
 
 
 
