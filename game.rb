@@ -1,109 +1,168 @@
-
 require 'pry'
 
-require_relative 'person.rb'
-require_relative 'board.rb'
-require_relative 'computer.rb'
+class Game
+  attr_accessor :player, :computer_opponent, :board, :current_player, :other_player
 
+  @@greeting_message = 'Welcome, the instruction to Tic-Tac-Toe are as followed: 
+    To answer please use 1-9, which corresponds to a space of 
+    the board.'
+  @@goodbye_message = "Thank you for playing!"
+  
+  def initialize
+    @board = Board.new
+    @player = nil
+    @computer_opponent = nil
+    @current_player = nil
+    @other_player = nil
+  end
 
-puts "Welcome, the instruction to Tic-Tac-Toe are as followed: 
-To answer please use 1-9, which corresponds to a space of 
-the board. 
+  def self.greeting_message
+     @@greeting_message
+  end
 
-Please enter your name."
+  def self.goodbye_message
+    @@goodbye_message
+  end
 
+  def prompt_for_name
+    puts "Enter name: "
+  end
 
-name=gets.chomp
-player_1 = Person.find_or_create_by_name(name)
-player_1.token_choice
+  def prompt_for_token
+    puts "X or O?"
+  end
 
-cpu = Computer.new(player_1)
+  def get_player
+    prompt_for_name
+    @player = Player.find_or_create_by_name(gets.chomp)
+    @current_player = @player
+    prompt_for_token
+    @player.set_player_token
+  end
 
-board_1 = Board.new
-board_1.print_board
+  def get_opponent
+    @opponent = ComputerPlayer.new
+    @other_player = @opponent#can change this to add 2 players
+    @opponent.set_computer_token(@player)
+  end
 
-#gameplay loop
-while true 
-  #user moves 
-  user_move = player_1.player_move
-    #binding.pry
-  until board_1.valid_move?(user_move) 
-    user_move = player_1.player_move
-  end 
-    #binding.pry
-    board_1.update(player_1, user_move)
-    #binding.pry
-    if board_1.game_over?
-      puts "Congrats you won!"
-      #determine who won
-      board_1.print_board
-      player_1.record[:wins] += 1
-      break
-      #update their hash 
-    elsif board_1.full_board?
-      board_1.print_board
-      puts "Tie!"
-      player_1.record[:ties] += 1
-      break
+  def get_player_and_opponent
+    get_player
+    get_opponent
+  end
+
+  def switch_turns
+    @current_player, @other_player = @other_player, @current_player
+  end
+
+  def prompt_player_for_move
+    puts "Enter a number from 1 to 9"
+    move = (gets.chomp.to_i - 1)
+    while !self.board.empty_square?(move) && ![0..8].include?(move)
+      #repeat input process
+      puts "Enter a number from 1 to 9"
+      move = gets.chomp.to_i
     end
 
+    self.player.add_move(move)
+  end
 
-    board_1.print_board
-
-
-    cpu_move = cpu.cpu_move
-    until board_1.valid_move?(cpu_move) 
-      cpu_move = cpu.cpu_move
-    end 
-    board_1.update(cpu, cpu_move)
-
-     board_1.print_board
-
-      if board_1.game_over?
-      puts "Sorry the computer won!"
-      #determine who won
-      board_1.print_board
-      player_1.record[:losses] += 1
-      break
-      #update their hash 
-      elsif board_1.full_board?
-        puts "Tie!"
-        board_1.print_board
-        player_1.record[:ties] += 1
-        break
+  def set_move
+    if @current_player.is_a?(Player)
+      prompt_player_for_move
+    elsif @current_player.is_a?(ComputerPlayer)
+      move = @current_player.computer_move
+      while !check_computer_move(move) 
+        move = @current_player.computer_move
       end
-  
+      @current_player.moves << move
+    end
+  end
+
+  def check_computer_move(move)
+    self.board.empty_square?(move)
+  end
+
+  def win_message
+    puts "#{@current_player.name} has won!"
+  end
+
+  def tie_message
+    puts "Tie Game!"
+  end
+
+  def game_board_status
+    @board.status  #=> open or closed
+  end
+
+  def win_sequence
+    @current_player.update_record_win
+    @other_player.update_record_loss
+    self.board.close_board
+    self.board.print_board
+    self.win_message
+  end
+
+  def tie_sequence
+    @current_player.update_record_tie
+    @other_player.update_record_tie
+    self.board.close_board
+    self.board.print_board
+    tie_message
+  end
+
+  def check_for_win_or_tie
+    if self.board.check_for_win 
+      win_sequence
+    elsif self.board.check_for_tie
+      tie_sequence
+    end
+  end
+
+  def one_round
+    self.board.print_board
+    self.set_move
+    self.board.check_and_set_square(@current_player.moves.last, @current_player)
+    self.check_for_win_or_tie
+    self.switch_turns
+  end
+
+  def game_loop
+    while game_board_status == "open"
+      self.one_round
+    end
+  end
 end
-  #board_1.print_board
-
-Pry.start
-
-  # board_1.update(player_1, move)
-  # move = cpu.cpu_move
-  # move = player_1.player_move
-  # until player_1.valid_move?(board_1)
-  #   move = player_1.player_move
-  # end
-
-  # board_1.print_board
 
 
+######
+# def self.play_again?
+#   puts "Would you like to play again? (Y/N)"
+#   input = gets.upcase.chomp
+#   until (input == "Y") || (input == "N")
+#     puts "Invalid entry. Please select 'Y' or 'N'"
+#     input = gets.upcase.chomp
+#   end
+#   input == "Y" ? @play_again = true : @play_again = false
+# end
+######
 
-# until board_1.valid_move?(move)
-#   binding.pry
-#   move = player_1.player_move
+# def valid_move?
+#   [0..8].include?(@move) && self.board.empty_square?(@move) ? true : false
 # end
 
 
-
-  
-
-
-
-
-
-
-
-
+  # if @current_player.class == Player
+  #   @move = prompt_player_for_move   # => returns 8
+  #   #prompt_player should have a built in loop
+  #   #to ensure value is between 1-9 or 0-8
+  # else
+  #   until self.board.empty_square?(@move) ###need to refactor?
+  #     @move = @current_player.computer_move
+  #     #SHOULD keep randomly selecting a number
+  #     #until that number passes empty_square?
+  #   end  ##UNTIL
+  # end ## IF
+  # @move
 
 

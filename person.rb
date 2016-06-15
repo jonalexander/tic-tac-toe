@@ -1,6 +1,6 @@
 
 class Person
-  attr_accessor :record, :token, :name
+  attr_accessor :record, :token, :name, #:position
 
   @@players = []
   
