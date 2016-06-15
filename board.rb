@@ -1,8 +1,13 @@
 require 'pry'
 class Board
-  attr_accessor :winner, :status
+  attr_accessor :winner, :status, :winning_scenarios
 
-  @@winning_scenarios = [
+  
+  def initialize #could sort of reuse for checkers
+    @board = []
+    9.times { @board << " " }
+    @status = "open"
+    @winning_scenarios = [
     [0, 1, 2],
     [3, 4, 5],
     [6, 7, 8],
@@ -13,10 +18,6 @@ class Board
     [2, 4, 6]
   ]
 
-  def initialize #could sort of reuse for checkers
-    @board = []
-    9.times { @board << " " }
-    @status = "open"
   end
 
   def blank #X
@@ -43,18 +44,26 @@ class Board
 
   def check_for_win
     result = nil
-    @@winning_scenarios.each do |combo_array|
-      winning_combo = [@board[combo_array[0]], @board[combo_array[1]], @board[combo_array[2]]]
-      ##binding.pry
-      if combo_array.include?(" ") == false && @board[combo_array[0]] == @board[combo_array[1]] && @board[combo_array[1]] == @board[combo_array[2]]
+    @winning_scenarios.each do |combo_array|
+      if (@board[combo_array[0]] != blank && @board[combo_array[0]] == @board[combo_array[1]]) && @board[combo_array[1]] == @board[combo_array[2]]
         result = true
+        break
       else
         result = false
       end 
-      return result
-    end
-    binding.pry 
+    end 
+    result
   end
+
+  # def win_condition(combo_array)
+  #   if (@board[combo_array[0]] != blank && @board[combo_array[0]] == @board[combo_array[1]]) && @board[combo_array[1]] == @board[combo_array[2]]
+  #       result = true
+  #       #break
+  #     else
+  #       result = false
+  #   end
+
+  # end
 
   def check_for_tie 
     check_for_win == false && board_full? == true ? true : false

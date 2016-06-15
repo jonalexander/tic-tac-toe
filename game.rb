@@ -112,7 +112,7 @@ class Game
   end
 
   def check_for_win_or_tie
-    binding.pry
+    #binding.pry
     if self.board.check_for_win 
       self.win_sequence
     elsif self.board.check_for_tie
@@ -125,9 +125,9 @@ class Game
     self.set_move
     self.board.check_and_set_square(@current_player.moves.last, @current_player)
     self.check_for_win_or_tie
-    binding.pry
+    #binding.pry
     self.switch_turns
-    binding.pry
+    #binding.pry
   end
 
   def game_loop #X
